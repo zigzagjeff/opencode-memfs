@@ -75,6 +75,51 @@ describe("memory_read", () => {
 })
 
 // ---------------------------------------------------------------------------
+// path resolution
+// ---------------------------------------------------------------------------
+
+describe("path resolution", () => {
+  it("should name the missing argument when path is absent", async () => {
+    const tool = createMemoryRead(state)
+    await expect(
+      tool.execute({ scope: "project" } as never, stubContext),
+    ).rejects.toThrow(/require a "path" argument/)
+  })
+
+  it("should reject an empty path instead of resolving to the store root", async () => {
+    const tool = createMemoryRead(state)
+    await expect(
+      tool.execute({ path: "", scope: "project" }, stubContext),
+    ).rejects.toThrow(/require a "path" argument/)
+  })
+
+  it("should reject a path that traverses outside the store", async () => {
+    const tool = createMemoryRead(state)
+    await expect(
+      tool.execute({ path: "../../../../etc/passwd", scope: "project" }, stubContext),
+    ).rejects.toThrow(/resolves outside the project memory store/)
+  })
+
+  it("should reject traversal on write as well as read", async () => {
+    const tool = createMemoryWrite(state)
+    await expect(
+      tool.execute(
+        { path: "../escaped.md", scope: "project", content: "x", description: "d" },
+        stubContext,
+      ),
+    ).rejects.toThrow(/resolves outside the project memory store/)
+  })
+
+  it("should still resolve a normal relative path unchanged", async () => {
+    await writeTestFile(tmpDir, "system/persona.md", FIXTURE_FULL)
+    const tool = createMemoryRead(state)
+    const result = await tool.execute({ path: "system/persona.md", scope: "project" }, stubContext)
+
+    expect(result).toBe("You are a helpful coding assistant.")
+  })
+})
+
+// ---------------------------------------------------------------------------
 // memory_write
 // ---------------------------------------------------------------------------
 

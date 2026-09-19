@@ -113,6 +113,16 @@ function resolvePath(
   relPath: string,
   scope: MemoryScope,
 ): { absPath: string; store: MemoryStorePaths; relativePath: string } {
+  // A missing path must not be dereferenced. Without this, omitting `path`
+  // fails as "undefined is not an object (evaluating 'relPath.replace')",
+  // naming an internal variable rather than the argument at fault.
+  if (typeof relPath !== "string" || relPath.trim() === "") {
+    throw new Error(
+      `Memory tools require a "path" argument (scope="${scope}"). ` +
+        `Pass a path relative to the ${scope} store root, e.g. "system/persona.md".`,
+    )
+  }
+
   // Normalize path separators
   const normalized = relPath.replace(/\\/g, "/")
 
@@ -121,10 +131,21 @@ function resolvePath(
     throw new Error(`No ${scope} memory store available`)
   }
 
+  // Keep the resolved path inside its store. path.join() accepts "../" and
+  // resolves outside the memory root entirely.
+  const absPath = path.resolve(store.root, normalized)
+  const rootWithSep = store.root.endsWith(path.sep) ? store.root : store.root + path.sep
+  if (absPath !== store.root && !absPath.startsWith(rootWithSep)) {
+    throw new Error(
+      `Path "${relPath}" resolves outside the ${scope} memory store. ` +
+        `Memory paths must stay within the store root.`,
+    )
+  }
+
   return {
-    absPath: path.join(store.root, normalized),
+    absPath,
     store,
-    relativePath: normalized,
+    relativePath: path.relative(store.root, absPath).split(path.sep).join("/"),
   }
 }
 
