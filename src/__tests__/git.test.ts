@@ -122,7 +122,7 @@ describe("getLog", () => {
 
   it("should return empty array for repo with no commits", async () => {
     // getLog catches errors and returns [] — test with a non-git dir
-    const { default: simpleGit } = await import("simple-git")
+    const { simpleGit } = await import("simple-git")
     const git = simpleGit(tmpDir)
     const commits = await getLog(git)
     expect(commits).toEqual([])

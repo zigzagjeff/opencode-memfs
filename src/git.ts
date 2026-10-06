@@ -8,7 +8,7 @@
 import { access } from "fs/promises"
 import path from "path"
 
-import simpleGit from "simple-git"
+import { simpleGit } from "simple-git"
 import type { SimpleGit } from "simple-git"
 
 import type { MemoryCommit } from "./types"

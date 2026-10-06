@@ -9,7 +9,7 @@ import { mkdtemp, rm, writeFile, mkdir } from "fs/promises"
 import { tmpdir } from "os"
 import path from "path"
 
-import simpleGit from "simple-git"
+import { simpleGit } from "simple-git"
 import type { SimpleGit } from "simple-git"
 
 import type { MemFSConfig, MemoryStorePaths } from "../types"
